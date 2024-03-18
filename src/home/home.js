@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import './home.css';
 
 
@@ -7,6 +7,7 @@ import './home.css';
 function Home() {
     //  https://the-trivia-api.com/v2/questions?categories=
     // https://the-trivia-api.com/v2/categories
+    const navigate = useNavigate();
 
     const [categories, setCategories] = useState(Object);
 
@@ -16,7 +17,7 @@ function Home() {
 
     const [isLoading, setIsLoading] = useState(false);
 
-    let chosenCat = '';
+    const [chosenCat, setChosenCat] = useState(String);
     
 
     const url = 'https://the-trivia-api.com/v2';
@@ -28,9 +29,7 @@ function Home() {
             await fetch(`${url}/categories`)
                 .then((res) => { return res.json(); })
                 .then((data) => {
-                    console.log(data);
                     setCategories(data);
-                    console.log(Object.keys(categories))
                 })
                 .catch((err) => {
                     console.log(err.message);
@@ -42,13 +41,6 @@ function Home() {
     }, []);
 
 
-    const toggleHome = () => {
-        if (displayHome) {
-            setDisplayCategories(false)
-        } else {
-            setDisplayCategories(true)
-        }
-    };
     const toggleCats = () => {
         if (displayCategories) {
             setDisplayCategories(false)
@@ -58,16 +50,26 @@ function Home() {
             setDisplayHome(false)
         }
     };
-    const toggleLevels = () => {
+    const toggleLevels = (cat) => {
         if (displayLevels) {
             setDisplayCategories(true)
             setDisplayLevels(false)
+            setChosenCat(cat)
         } else {
             setDisplayLevels(true)
             setDisplayCategories(false)
+            setChosenCat(cat)
         }
     };
 
+    const selectedLevel = (lvl) => {
+        console.log(chosenCat)
+        let cat = chosenCat.replaceAll(' ', '_')
+        cat = cat.replaceAll('&', 'and');
+        cat = cat.toLowerCase();
+        console.log(cat);
+        navigate('/quiz', {state: {cat: cat, level: lvl}})
+    }
 
     return (
         <div className="Home">
@@ -85,7 +87,7 @@ function Home() {
                     <ul className="categories">
                         { 
                         Object.keys(categories).map((cat, index) => {
-                            return <li key={index} onClick={toggleLevels}>{cat}</li>
+                            return <li key={index} onClick={() => toggleLevels(cat)}>{cat}</li>
                         })}
                     </ul>
                     <button className="backBtn" onClick={toggleCats}>Back</button>
@@ -94,19 +96,14 @@ function Home() {
             {displayLevels &&
                 <div className="page">
                     <ul className="categories">
-                        <li>Easy</li>
-                        <li>Medium</li>
-                        <li>Hard</li>
-                        <li>Random</li>
+                        <li onClick={() => selectedLevel('easy')}>Easy</li>
+                        <li onClick={() => selectedLevel('medium')}>Medium</li>
+                        <li onClick={() => selectedLevel('hard')}>Hard</li>
+                        <li onClick={() => selectedLevel('')}>Random</li>
                     </ul>
-                    <button className="backBtn" onClick={toggleLevels}>Back</button>
+                    <button className="backBtn" onClick={() => toggleLevels('')}>Back</button>
                 </div>
             }
-
-
-
-
-
         </div>
     );
 }
