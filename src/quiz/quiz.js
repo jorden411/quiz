@@ -8,16 +8,15 @@ function Quiz() {
     console.log(loc);
     const url = 'https://the-trivia-api.com/v2';
 
-    const [questionData, setQuestionData] = useState(null);
-    const [questionNo, setQuestionNo] = useState(1);
+    const [questionData, setQuestionData] = useState([]);
+    const [questionNo, setQuestionNo] = useState(0);
     const [chosenAnswers, setChosenAnswers] = useState([]);
+    const [finished, setFinished] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    console.log(isLoading)
+
 
     useEffect(() => {
         const fetchQuestions = async () => {
-            setIsLoading(true);
-
             await fetch(`${url}/questions?categories=${loc.state.cat}&difficulty=${loc.state.lvl}`)
                 .then((res) => { return res.json(); })
                 .then((data) => {
@@ -40,18 +39,26 @@ function Quiz() {
                 .catch((err) => {
                     console.log(err.message);
                 });
-            setIsLoading(false);
         }
 
         fetchQuestions();
     }, []);
+    console.log(questionData);
 
     const updateQuestion = (ans) => {
-        
-        setChosenAnswers(chosenAnswers.push(ans))
-        setQuestionNo(questionNo + 1);
+        if (questionNo < 9) {
+            console.log(ans);
+            setChosenAnswers([...chosenAnswers, ans]);
+
+            setQuestionNo(questionNo + 1);
+            console.log(chosenAnswers);
+        } else {
+            setChosenAnswers([...chosenAnswers, ans]);
+            setFinished(true)
+        }
 
     }
+    
 
     return (
         <div className="Quiz">
@@ -60,22 +67,32 @@ function Quiz() {
             <h2>Score</h2>
 
             <div className='page'>
-                {questionData &&
+                {questionData && !finished &&
                     <>
-                        <h2 className='questionNo'>Question No.{questionNo}</h2>
+                        <h2 className='questionNo'>Question No.{questionNo + 1}</h2>
 
-                        <h3 className='question'>{questionData[questionNo].question.text}</h3>
+                        <h3 className='question'>{questionData[questionNo]?.question.text}</h3>
 
                         <ul className='answers'>
-                            <li className='ansBtn' onClick={updateQuestion(questionData[questionNo].answers[0] === questionData[questionNo].correctAnswer ? true : false )}>{questionData[questionNo].answers[0]}</li>
-                            <li className='ansBtn' onClick={updateQuestion(questionData[questionNo].answers[1] === questionData[questionNo].correctAnswer ? true : false )}>{questionData[questionNo].answers[1]}</li>
-                            <li className='ansBtn' onClick={updateQuestion(questionData[questionNo].answers[2] === questionData[questionNo].correctAnswer ? true : false )}>{questionData[questionNo].answers[2]}</li>
-                            <li className='ansBtn' onClick={updateQuestion(questionData[questionNo].answers[3] === questionData[questionNo].correctAnswer ? true : false )}>{questionData[questionNo].answers[3]}</li>
+                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[0] === questionData[questionNo]?.correctAnswer ? true : false)}>{questionData[questionNo]?.answers[0]}</li>
+                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[1] === questionData[questionNo]?.correctAnswer ? true : false)}>{questionData[questionNo]?.answers[1]}</li>
+                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[2] === questionData[questionNo]?.correctAnswer ? true : false)}>{questionData[questionNo]?.answers[2]}</li>
+                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[3] === questionData[questionNo]?.correctAnswer ? true : false)}>{questionData[questionNo]?.answers[3]}</li>
                         </ul>
                     </>
 
                 }
+                {finished &&
+                    <>
+                        <p>congrats you have finished</p>
+                        <ul>
 
+                        </ul>
+                        {chosenAnswers.map((ans, index) => {
+                            return <li key={index}>{ans}</li>
+                        })}
+                    </>
+                }
 
 
 
