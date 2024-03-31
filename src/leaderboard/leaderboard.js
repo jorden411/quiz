@@ -1,10 +1,15 @@
 import { Link, parsePath, useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
 import './leaderboard.css';
+import { db, auth } from '../firebase-config'
+import { getAuth } from 'firebase/auth'
 
 
 
 function Leaderboard() {
+    const [user, setUser] = useState([])
+    const auth = getAuth()
+    const fireUser = auth.currentUser
 
     const loc = useLocation()
     console.log(loc)
@@ -62,7 +67,7 @@ function Leaderboard() {
                 }
                 {displayLeaderboard &&
                     <>
-                    
+
                     </>
                 }
             </div>

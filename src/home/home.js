@@ -3,11 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import './home.css';
 import { collection, getDoc, getDocs, doc, addDoc } from "@firebase/firestore"
 import { db, auth } from '../firebase-config'
+import { getAuth } from 'firebase/auth'
 
 
 
 function Home() {
-
+    const [user, setUser] = useState([])
+    const auth = getAuth()
+    const fireUser = auth.currentUser
 
     //  https://the-trivia-api.com/v2/questions?categories=
     // https://the-trivia-api.com/v2/categories

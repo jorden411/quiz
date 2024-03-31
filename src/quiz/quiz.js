@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import './quiz.css';
+import { db, auth } from '../firebase-config'
+import { getAuth } from 'firebase/auth'
 
 
 function Quiz() {
+    const [user, setUser] = useState([])
+    const auth = getAuth()
+    const fireUser = auth.currentUser
+
     const loc = useLocation()
     const url = 'https://the-trivia-api.com/v2';
 
@@ -128,7 +134,7 @@ function Quiz() {
                                 <a>Your Answer: {chosenAnswers[index]}</a>
                             </div>
                         })}
-                        <Link className="btn" to={{pathname: "/leaderboard"}}>Leaderboard</Link>
+                        <Link className="btn" to={{ pathname: "/leaderboard" }}>Leaderboard</Link>
                         <Link className="btn" to={"/home"}>Main Menu</Link>
                     </>
                 }
