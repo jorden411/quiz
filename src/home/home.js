@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import './home.css';
+import { collection, getDoc, getDocs, doc, addDoc } from "@firebase/firestore"
+import { db, auth } from '../firebase-config'
 
 
 
 function Home() {
+
+
     //  https://the-trivia-api.com/v2/questions?categories=
     // https://the-trivia-api.com/v2/categories
     const navigate = useNavigate();
@@ -18,7 +22,7 @@ function Home() {
     const [isLoading, setIsLoading] = useState(false);
 
     const [chosenCat, setChosenCat] = useState(String);
-    
+
 
     const url = 'https://the-trivia-api.com/v2';
 
@@ -68,27 +72,36 @@ function Home() {
         cat = cat.replaceAll('&', 'and');
         cat = cat.toLowerCase();
         console.log(cat);
-        navigate('/quiz', {state: {cat: cat, level: lvl}})
+        navigate('/quiz', { state: { cat: cat, level: lvl } })
+    }
+
+    const goToLeaderboard = () => {
+        navigate('/leaderboard', { state: Object.keys(categories) })
     }
 
     return (
         <div className="Home">
             {displayHome &&
                 <div className="page">
+                    <div className="side">
+                        <Link className="sideBtn" to={"/auth"}>Sign In</Link>
+                        <Link className="sideBtn" to={"/settings"}>Settings</Link>
+                    </div>
+
                     <h1>CI601 Quiz</h1>
 
                     <button onClick={toggleCats}>Start a Quiz!</button>
 
-                    <Link className="btn" to="/leaderboard">Leaderboard</Link>
+                    <button className="btn" onClick={goToLeaderboard}>Leaderboard</button>
                 </div>
             }
             {displayCategories &&
                 <div className="page">
                     <ul className="categories">
-                        { 
-                        Object.keys(categories).map((cat, index) => {
-                            return <li key={index} onClick={() => toggleLevels(cat)}>{cat}</li>
-                        })}
+                        {
+                            Object.keys(categories).map((cat, index) => {
+                                return <li key={index} onClick={() => toggleLevels(cat)}>{cat}</li>
+                            })}
                     </ul>
                     <button className="backBtn" onClick={toggleCats}>Back</button>
                 </div>
