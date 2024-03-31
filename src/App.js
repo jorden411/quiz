@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './home/home';
 import Quiz from './quiz/quiz';
 import Leaderboard from './leaderboard/leaderboard';
+import Auth from './auth/auth';
+
 
 function App() {
   return (
@@ -13,6 +15,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/auth" element={<Auth />}/>
       </Routes>
     </BrowserRouter>
 
@@ -20,3 +23,5 @@ function App() {
 }
 
 export default App;
+
+
