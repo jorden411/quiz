@@ -5,12 +5,62 @@ import { collection, getDoc, getDocs, doc, addDoc } from "@firebase/firestore"
 import { db, auth } from '../firebase-config'
 
 function Auth() {
+    const navigate = useNavigate();
 
     const [isLogin, setIsLogin] = useState(true)
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('');
+
+    const docRef = doc(db, 'usernames');
+    console.log(docRef)
+    const docSnap =  getDoc(doc);
 
     const switchTabs = () => {
         isLogin ? setIsLogin(false) : setIsLogin(true);
     }
+
+    const submitSignUp = async (e) => {
+        e.preventDefault()
+        setEmail()
+        setPassword()
+
+        doc(db, 'usernames')
+        getDoc()
+
+        await createUserWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                // Signed in
+                const user = userCredential.user;
+                console.log(user);
+                navigate("/home")
+                // ...
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.log(errorCode, errorMessage);
+                // ..
+            });
+    }
+
+    const submitLogin = (e) => {
+
+        e.preventDefault();
+        signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            // Signed in
+            const user = userCredential.user;
+            navigate("/home")
+            console.log(user);
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.log(errorCode, errorMessage)
+        });
+       
+    }
+
 
     return (
         <div className="Auth">
@@ -26,7 +76,7 @@ function Auth() {
                     <input type='password' placeholder='Password' />
                     <div className='buttons'>
                         <Link className="btn" to={"/home"}>Back</Link>
-                        <button className='btn' style={{alignSelf: 'end'}}>Submit</button>
+                        <button className='btn' style={{ alignSelf: 'end' }}>Submit</button>
                     </div>
                 </div>
             }
@@ -43,7 +93,7 @@ function Auth() {
                     <input type='password' placeholder='Confirm Password' />
                     <div className='buttons'>
                         <Link className="btn" to={"/home"}>Back</Link>
-                        <button className='btn' style={{alignSelf: 'end'}}>Submit</button>
+                        <button className='btn' style={{ alignSelf: 'end' }}>Submit</button>
                     </div>
                 </div>
             }
