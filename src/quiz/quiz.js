@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import './quiz.css';
 import { db, auth } from '../firebase-config'
+import { collection, getDoc, getDocs, doc, addDoc, updateDoc, setDoc } from "@firebase/firestore"
 import { getAuth } from 'firebase/auth'
 
 
 function Quiz() {
     const [user, setUser] = useState([])
     const auth = getAuth()
-    const fireUser = auth.currentUser
+
+
 
     const loc = useLocation()
     const url = 'https://the-trivia-api.com/v2';
@@ -57,13 +59,14 @@ function Quiz() {
                     console.log(err.message);
                 });
         }
-
         fetchQuestions();
+        setUser(auth.currentUser);
     }, []);
     console.log(questionData);
 
     const doneLoading = () => {
         setIsLoading(false);
+        timer()
     }
 
     const updateQuestion = (ans) => {
@@ -83,10 +86,38 @@ function Quiz() {
                 chosenAnswers[i] = questionData
             }
             setFinished(true)
+            finishQuiz()
         }
 
     }
 
+    const finishQuiz = () => {
+
+    }
+
+    const timer = () => {
+        let minutesLabel = document.querySelector(".minutes");
+        let secondsLabel = document.querySelector(".seconds");
+        let totalSeconds = 0;
+        setInterval(setTime, 1000);
+    
+        function setTime() {
+            ++totalSeconds;
+            secondsLabel.innerHTML = pad(totalSeconds % 60);
+            minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+        }
+    
+        function pad(val) {
+            var valString = val + "";
+            if (valString.length < 2) {
+                return "0" + valString;
+            }
+            else {
+                return valString;
+            }
+        }
+    }
+    
 
     return (
         <div className="Quiz">
@@ -96,13 +127,20 @@ function Quiz() {
                     <>
                         <h2>You will get only one chance to answer each question</h2>
                         <h2>If you refresh at any point you will restart the quiz with new questions</h2>
-                        <button onClick={doneLoading}>Continue</button>
+                        {!user &&
+                            <h2>You're not logged in, so you score won't be saved to the leaderboards.</h2>
+                        }
+                        <button onClick={doneLoading}>Start</button>
+                        <Link className="backBtn" to={"/home"}>Back</Link>
                     </>
 
                 }
 
                 {!isLoading && questionData && !finished &&
                     <>
+                        <label className="minutes">00</label>
+                        <label className="colon">:</label>
+                        <label className="seconds">00</label>
                         <h1 className='questionNo'>Question No.{questionNo + 1}</h1>
 
                         <h3 className='question'>{questionData[questionNo]?.question.text}</h3>
@@ -129,9 +167,9 @@ function Quiz() {
                                 background = 'linear-gradient(164deg, rgba(2,0,36,1) 0%, rgba(0,212,255,0) 0%, rgba(187,14,14,1) 100%)';
                             }
                             return <div className="results" style={{ background: background }} key={index}>
-                                <a>Question: {data.question.text}</a><br />
-                                <a>Correct Answer: {data.correctAnswer}</a><br />
-                                <a>Your Answer: {chosenAnswers[index]}</a>
+                                <a className="dark">Question: {data.question.text}</a><br />
+                                <a className="dark">Correct Answer: {data.correctAnswer}</a><br />
+                                <a className="dark">Your Answer: {chosenAnswers[index]}</a>
                             </div>
                         })}
                         <Link className="btn" to={{ pathname: "/leaderboard" }}>Leaderboard</Link>
