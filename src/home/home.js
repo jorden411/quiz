@@ -8,9 +8,13 @@ import { getAuth } from 'firebase/auth'
 
 
 function Home() {
-    const [user, setUser] = useState([])
+    const [initializing, setInitializing] = useState(true);
+    const [user, setUser] = useState()
+
     const auth = getAuth()
     const fireUser = auth.currentUser
+
+    console.log(fireUser)
 
     //  https://the-trivia-api.com/v2/questions?categories=
     // https://the-trivia-api.com/v2/categories
@@ -28,6 +32,27 @@ function Home() {
 
 
     const url = 'https://the-trivia-api.com/v2';
+
+    // Handle user state changes
+    async function onAuthStateChanged(user) {
+        if (user) {
+            const userDocRefocRef = doc(db, 'users', user.uid)
+            const userSnap = await getDoc(userDocRefocRef);
+            setUser(userSnap.data());
+            console.log(userSnap.data())
+        }
+
+
+        if (initializing) setInitializing(false);
+    }
+
+    useEffect(() => {
+        const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+
+        return subscriber; // unsubscribe on unmount
+    }, []);
+
+
 
     useEffect(() => {
         const fetchCats = async () => {
@@ -82,13 +107,27 @@ function Home() {
         navigate('/leaderboard', { state: Object.keys(categories) })
     }
 
+    if (initializing) return null;
+
     return (
         <div className="Home">
             {displayHome &&
                 <div className="page">
                     <div className="side">
-                        <Link className="sideBtn" to={"/auth"}>Sign In</Link>
-                        <Link className="sideBtn" to={"/settings"}>Settings</Link>
+                        {user ?
+                            <>
+                                <a className="welcomeMes">Welcome, {user.username}</a>
+                                <Link className="sideBtn" to={"/settings"}>Settings</Link>
+                                <a className="sideBtn" onClick={() => auth.signOut()}>Log Out</a>
+                            </>
+                            :
+                            <>
+                                <Link className="sideBtn" to={"/settings"}>Settings</Link>
+                                <Link className="sideBtn" to={"/auth"}>Sign In</Link>
+                            </>
+                        }
+
+
                     </div>
 
                     <h1>CI601 Quiz</h1>
@@ -100,6 +139,7 @@ function Home() {
             }
             {displayCategories &&
                 <div className="page">
+                    <h1>Category</h1>
                     <ul className="categories">
                         {
                             Object.keys(categories).map((cat, index) => {
@@ -111,6 +151,7 @@ function Home() {
             }
             {displayLevels &&
                 <div className="page">
+                    <h1>Level</h1>
                     <ul className="categories">
                         <li onClick={() => selectedLevel('easy')}>Easy</li>
                         <li onClick={() => selectedLevel('medium')}>Medium</li>

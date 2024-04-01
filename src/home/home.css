@@ -81,3 +81,9 @@ ul{
   color: white;
   text-decoration: none;
 }
+
+.welcomeMes {
+  color:rgb(34, 31, 54);
+  margin-right: 16px;
+  font-weight: 700;
+}
