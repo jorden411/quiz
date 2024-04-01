@@ -88,3 +88,8 @@ input:focus {
     border: 3px solid black;
     cursor: pointer;
 }
+
+.loginErrorMes, .signupErrorMes {
+    color: red;
+    text-align: center;
+}

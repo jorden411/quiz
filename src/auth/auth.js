@@ -1,7 +1,7 @@
 import './auth.css';
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { collection, getDoc, getDocs, doc, addDoc } from "@firebase/firestore"
+import { collection, getDoc, getDocs, doc, addDoc, updateDoc, setDoc } from "@firebase/firestore"
 import { db, auth } from '../firebase-config'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, getAuth } from 'firebase/auth'
 
@@ -26,70 +26,87 @@ function Auth() {
             const docRef = doc(db, 'usernames', 'usernames');
             console.log(docRef)
             const docSnap = await getDoc(docRef);
-            console.log(docSnap)
+            console.log(docSnap.data().usernames);
             setUsernames(docSnap.data().usernames);
         }
         getUsernames()
     }, [])
 
 
-    console.log(usernames);
-
     const switchTabs = () => {
         isLogin ? setIsLogin(false) : setIsLogin(true);
     }
 
     const submitSignUp = async () => {
+        console.log(usernames);
+        const errMes = document.querySelector('.signupErrorMes');
+        const passwordCheck = /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[a-zA-Z!#$%&? "])[a-zA-Z0-9!#$%&?]{8,20}$/;
+        const emailCheck = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-        if (usernames.includes(username)) {
-
+        // Data validation
+        if (username == '' || email == '' || password == '' || passwordConfirm == '') {
+            errMes.textContent = "Please fill in all fields";
+        } else if (!emailCheck.test(email)) {
+            errMes.textContent = "Invalid email"
+        } else if (usernames.includes(username)) {
+            errMes.textContent = "Username in use";
         } else if (password != passwordConfirm) {
-
-        } else if (!email.includes('@')) {
-            console.log(email)
+            errMes.textContent = "Passwords don't match"
+        } else if (!passwordCheck.test(password)) {
+            errMes.textContent = "Password must contain an uppercase letter, a symbol, a number and be between 8 and 20 characters"
         } else {
+            // Add loading spinner
 
+            // Create user account
+            await createUserWithEmailAndPassword(auth, email, password)
+                .then(async (userCredential) => {
+                    // Signed in
+                    const user = userCredential.user;
+                    console.log(user);
+
+                    // Add username to usernames array
+                    const docRef = doc(db, 'usernames', 'usernames');
+                    await updateDoc(docRef, {usernames: [...usernames, username]});
+
+                    // Create user account reference in database
+                    const userDocRef = doc(db, 'users', userCredential.user.uid)
+                    await setDoc(userDocRef, {uid: userCredential.user.uid, username: username, email: email})
+
+                    // ...
+                    navigate("/home")
+                    
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.log(errorCode, errorMessage);
+                    errMes.textContent = errorMessage;
+                    // ..
+                });
         }
-        console.log(username)
-        console.log(password);
-        console.log(passwordConfirm);
-        console.log(email)
-
-        setEmail()
-        setPassword()
-
-
-
-        // await createUserWithEmailAndPassword(auth, email, password)
-        //     .then((userCredential) => {
-        //         // Signed in
-        //         const user = userCredential.user;
-        //         console.log(user);
-        //         navigate("/home")
-        //         // ...
-        //     })
-        //     .catch((error) => {
-        //         const errorCode = error.code;
-        //         const errorMessage = error.message;
-        //         console.log(errorCode, errorMessage);
-        //         // ..
-        //     });
     }
 
-    const submitLogin = (e) => {
-
-        e.preventDefault();
-        signInWithEmailAndPassword(auth, email, password)
+    const submitLogin = async () => {
+        const errMes = document.querySelector('.loginErrorMes');
+        await signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 // Signed in
                 const user = userCredential.user;
-                navigate("/home")
+
+
+                navigate("/home");
                 console.log(user);
             })
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
-                console.log(errorCode, errorMessage)
+                console.log(errorCode);
+                if (errorCode == 'auth/invalid-password' || errorCode == 'auth/invalid-email') {
+                    errMes.textContent = "Email and/or Password don't match. Please try again.";
+                } else {
+                    errMes.textContent = "Error please refresh and try again.";
+                }
+                
             });
 
     }
@@ -106,8 +123,10 @@ function Auth() {
 
                     <h1>Log In</h1>
 
-                    <input type='email' placeholder='Email Address' />
-                    <input type='password' placeholder='Password' />
+                    <input type='email' placeholder='Email Address' value={email} onChange={(e) => setEmail(e.target.value)} required/>
+                    <input type='password' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} required/>
+
+                    <p className='loginErrorMes'></p>
 
                     <div className='buttons'>
                         <Link className="btn" to={"/home"}>Back</Link>
@@ -124,14 +143,12 @@ function Auth() {
 
                     <h1>Sign Up</h1>
 
-                    <input type='email' placeholder='Email Address' value={email} onChange={(e) => setEmail(e.target.value)}
-                        required />
-                    <input type='text' placeholder='Username' value={username} onChange={(e) => setUsername(e.target.value)}
-                        required />
-                    <input type='password' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)}
-                        required />
-                    <input type='password' placeholder='Confirm Password' value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)}
-                        required />
+                    <input type='email' placeholder='Email Address' value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <input type='text' placeholder='Username' value={username} onChange={(e) => setUsername(e.target.value)} required />
+                    <input type='password' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <input type='password' placeholder='Confirm Password' value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} required />
+
+                    <p className='signupErrorMes'></p>
 
                     <div className='buttons'>
                         <Link className="btn" to={"/home"}>Back</Link>
