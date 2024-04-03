@@ -66,3 +66,12 @@ h1, h2, h3, .dark{
   font-size: 20px;
   margin-top: 8px;
 }
+.timer {
+  align-self: start;
+  margin-top: 8px;
+  margin-left: 16px;
+}
+.minutes, .colon, .seconds {
+  display: none;
+  
+}

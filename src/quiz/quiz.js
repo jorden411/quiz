@@ -66,7 +66,14 @@ function Quiz() {
 
     const doneLoading = () => {
         setIsLoading(false);
-        timer()
+        const min = document.querySelector('.minutes');
+        const colon = document.querySelector('.colon');
+        const sec = document.querySelector(".seconds");
+
+        min.style.display = 'inline';
+        colon.style.display = 'inline';
+        sec.style.display = 'inline';
+        timer();
     }
 
     const updateQuestion = (ans) => {
@@ -85,28 +92,46 @@ function Quiz() {
             for (let i = 0; i < chosenAnswers.length; i++) {
                 chosenAnswers[i] = questionData
             }
-            setFinished(true)
+            setFinished(true);
             finishQuiz()
         }
 
     }
 
     const finishQuiz = () => {
+        const min = document.querySelector('.minutes');
+        const colon = document.querySelector('.colon');
+        const sec = document.querySelector('.seconds');
 
+        min.style.display = 'none';
+        colon.style.display = 'none';
+        sec.style.display = 'none';
+
+        const time = document.querySelector('.finalTime');
+
+        const finalMin = min.textContent;
+        const finalSec = sec.textContent;
+        console.log(finalMin);
+        console.log(finalSec);
+
+        time.textContent = `${finalMin}:${finalSec}`
     }
 
     const timer = () => {
-        let minutesLabel = document.querySelector(".minutes");
-        let secondsLabel = document.querySelector(".seconds");
+
+        const min = document.querySelector('.minutes');
+        const sec = document.querySelector('.seconds');
         let totalSeconds = 0;
+
         setInterval(setTime, 1000);
-    
+
         function setTime() {
             ++totalSeconds;
-            secondsLabel.innerHTML = pad(totalSeconds % 60);
-            minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+
+            sec.textContent = pad(totalSeconds % 60);
+            min.textContent = pad(parseInt(totalSeconds / 60));
         }
-    
+
         function pad(val) {
             var valString = val + "";
             if (valString.length < 2) {
@@ -117,12 +142,18 @@ function Quiz() {
             }
         }
     }
-    
 
     return (
         <div className="Quiz">
 
             <div className='page'>
+                <div className="timer">
+                    <h2 className="minutes">00</h2>
+                    <h2 className="colon">:</h2>
+                    <h2 className="seconds">00</h2>
+                </div>
+
+
                 {isLoading &&
                     <>
                         <h2>You will get only one chance to answer each question</h2>
@@ -138,9 +169,7 @@ function Quiz() {
 
                 {!isLoading && questionData && !finished &&
                     <>
-                        <label className="minutes">00</label>
-                        <label className="colon">:</label>
-                        <label className="seconds">00</label>
+
                         <h1 className='questionNo'>Question No.{questionNo + 1}</h1>
 
                         <h3 className='question'>{questionData[questionNo]?.question.text}</h3>
@@ -154,11 +183,10 @@ function Quiz() {
                     </>
 
                 }
+                <h1 className="finalScore">Score: {score}/10</h1>
+                <h2 className="finalTime"></h2>
                 {!isLoading && finished &&
                     <>
-                        <h1>Score: {score}/10</h1>
-
-
                         {questionData.map((data, index) => {
                             let background = '';
                             if (data.correctAnswer == chosenAnswers[index]) {
