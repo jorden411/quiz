@@ -66,7 +66,7 @@ function Quiz() {
 
     const doneLoading = () => {
         setIsLoading(false);
-        timer()
+        timer();
     }
 
     const updateQuestion = (ans) => {
@@ -95,16 +95,18 @@ function Quiz() {
 
     }
 
-    const timer = () => {
-        let minutesLabel = document.querySelector(".minutes");
-        let secondsLabel = document.querySelector(".seconds");
+    const timer = async () => {
+        const mins = document.querySelector('.minutes');
+        const secs = document.querySelector('.seconds');
         let totalSeconds = 0;
         setInterval(setTime, 1000);
     
+        console.log(mins)
+        console.log(secs)
         function setTime() {
             ++totalSeconds;
-            secondsLabel.innerHTML = pad(totalSeconds % 60);
-            minutesLabel.innerHTML = pad(parseInt(totalSeconds / 60));
+            secs.textContent = pad(totalSeconds % 60);
+            mins.textContent = pad(parseInt(totalSeconds / 60));
         }
     
         function pad(val) {
@@ -138,9 +140,9 @@ function Quiz() {
 
                 {!isLoading && questionData && !finished &&
                     <>
-                        <label className="minutes">00</label>
-                        <label className="colon">:</label>
-                        <label className="seconds">00</label>
+                        <p className="minutes">00</p>
+                        <p className="colon">:</p>
+                        <p className="seconds">00</p>
                         <h1 className='questionNo'>Question No.{questionNo + 1}</h1>
 
                         <h3 className='question'>{questionData[questionNo]?.question.text}</h3>
