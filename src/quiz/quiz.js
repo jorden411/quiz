@@ -22,6 +22,22 @@ function Quiz() {
     const [score, setScore] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Handle user state changes
+    async function onAuthStateChanged(user) {
+        if (user) {
+            const userDocRefocRef = doc(db, 'users', user.uid)
+            const userSnap = await getDoc(userDocRefocRef);
+            setUser(userSnap.data());
+            console.log(userSnap.data())
+        }
+    }
+
+    useEffect(() => {
+        const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+
+        return subscriber; // unsubscribe on unmount
+    }, []);
+
     useEffect(() => {
         const unloadCallback = (event) => {
             event.preventDefault();
@@ -36,7 +52,7 @@ function Quiz() {
 
     useEffect(() => {
         const fetchQuestions = async () => {
-            await fetch(`${url}/questions?categories=${loc.state.cat}&difficulty=${loc.state.lvl}`)
+            await fetch(`${url}/questions?categories=${loc.state.cat}&difficulty=${loc.state.level}`)
                 .then((res) => { return res.json(); })
                 .then((data) => {
                     console.log(data);
@@ -66,6 +82,16 @@ function Quiz() {
 
     const doneLoading = () => {
         setIsLoading(false);
+<<<<<<< HEAD
+=======
+        const min = document.querySelector('.minutes');
+        const colon = document.querySelector('.colon');
+        const sec = document.querySelector(".seconds");
+
+        min.style.display = 'inline';
+        colon.style.display = 'inline';
+        sec.style.display = 'inline';
+>>>>>>> cf9233db2eb07b625dfb2dcbd65612024aba04f9
         timer();
     }
 
@@ -85,21 +111,56 @@ function Quiz() {
             for (let i = 0; i < chosenAnswers.length; i++) {
                 chosenAnswers[i] = questionData
             }
-            setFinished(true)
+            setFinished(true);
             finishQuiz()
         }
 
     }
 
-    const finishQuiz = () => {
+    const finishQuiz = async () => {
+        const finalScore = document.querySelector('.finalScore');
+        const finalTime = document.querySelector('.finalTime');
+        finalScore.style.display = 'block';
+        finalTime.style.display = 'block';
 
+        const min = document.querySelector('.minutes');
+        const colon = document.querySelector('.colon');
+        const sec = document.querySelector('.seconds');
+
+        min.style.display = 'none';
+        colon.style.display = 'none';
+        sec.style.display = 'none';
+
+        const time = document.querySelector('.finalTime');
+
+        const finalMin = min.textContent;
+        const finalSec = sec.textContent;
+
+        time.textContent = `${finalMin}:${finalSec}`
+        if (user) {
+            const minInt = parseInt(min.textContent);
+            const secInt = parseInt(sec.textContent);
+            console.log(`leaderboards/${loc.state.cat}/${loc.state.level}`)
+            const colRef = collection(db, `leaderboards/${loc.state.cat}/${loc.state.level}`)
+            await addDoc(colRef, { username: user.username, uid: user.uid, score: score, time: ((minInt * 60) + secInt) })
+
+        }
     }
 
+<<<<<<< HEAD
     const timer = async () => {
         const mins = document.querySelector('.minutes');
         const secs = document.querySelector('.seconds');
+=======
+    const timer = () => {
+
+        const min = document.querySelector('.minutes');
+        const sec = document.querySelector('.seconds');
+>>>>>>> cf9233db2eb07b625dfb2dcbd65612024aba04f9
         let totalSeconds = 0;
+
         setInterval(setTime, 1000);
+<<<<<<< HEAD
     
         console.log(mins)
         console.log(secs)
@@ -107,8 +168,16 @@ function Quiz() {
             ++totalSeconds;
             secs.textContent = pad(totalSeconds % 60);
             mins.textContent = pad(parseInt(totalSeconds / 60));
+=======
+
+        function setTime() {
+            ++totalSeconds;
+
+            sec.textContent = pad(totalSeconds % 60);
+            min.textContent = pad(parseInt(totalSeconds / 60));
+>>>>>>> cf9233db2eb07b625dfb2dcbd65612024aba04f9
         }
-    
+
         function pad(val) {
             var valString = val + "";
             if (valString.length < 2) {
@@ -119,12 +188,18 @@ function Quiz() {
             }
         }
     }
-    
 
     return (
         <div className="Quiz">
 
             <div className='page'>
+                <div className="timer">
+                    <h2 className="minutes">00</h2>
+                    <h2 className="colon">:</h2>
+                    <h2 className="seconds">00</h2>
+                </div>
+
+
                 {isLoading &&
                     <>
                         <h2>You will get only one chance to answer each question</h2>
@@ -140,9 +215,13 @@ function Quiz() {
 
                 {!isLoading && questionData && !finished &&
                     <>
+<<<<<<< HEAD
                         <p className="minutes">00</p>
                         <p className="colon">:</p>
                         <p className="seconds">00</p>
+=======
+
+>>>>>>> cf9233db2eb07b625dfb2dcbd65612024aba04f9
                         <h1 className='questionNo'>Question No.{questionNo + 1}</h1>
 
                         <h3 className='question'>{questionData[questionNo]?.question.text}</h3>
@@ -156,11 +235,10 @@ function Quiz() {
                     </>
 
                 }
+                <h1 className="finalScore">Score: {score}/10</h1>
+                <h2 className="finalTime"></h2>
                 {!isLoading && finished &&
                     <>
-                        <h1>Score: {score}/10</h1>
-
-
                         {questionData.map((data, index) => {
                             let background = '';
                             if (data.correctAnswer == chosenAnswers[index]) {

@@ -42,7 +42,6 @@ function Home() {
             console.log(userSnap.data())
         }
 
-
         if (initializing) setInitializing(false);
     }
 
@@ -152,11 +151,11 @@ function Home() {
             {displayLevels &&
                 <div className="page">
                     <h1>Level</h1>
-                    <ul className="categories">
+                    <ul className="levels">
                         <li onClick={() => selectedLevel('easy')}>Easy</li>
                         <li onClick={() => selectedLevel('medium')}>Medium</li>
                         <li onClick={() => selectedLevel('hard')}>Hard</li>
-                        <li onClick={() => selectedLevel('')}>Random</li>
+                        {/* <li onClick={() => selectedLevel('')}>Random</li> */}
                     </ul>
                     <button className="backBtn" onClick={() => toggleLevels('')}>Back</button>
                 </div>

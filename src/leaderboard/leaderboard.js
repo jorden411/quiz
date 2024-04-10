@@ -56,11 +56,10 @@ function Leaderboard() {
                 }
                 {displayLevels &&
                     <>
-                        <ul className="categories">
+                        <ul className="levels">
                             <li onClick={() => selectedLevel('easy')}>Easy</li>
                             <li onClick={() => selectedLevel('medium')}>Medium</li>
                             <li onClick={() => selectedLevel('hard')}>Hard</li>
-                            <li onClick={() => selectedLevel('')}>Random</li>
                         </ul>
                         <button className="backBtn" onClick={() => toggleLevel()}>Back</button>
                     </>
