@@ -37,7 +37,7 @@
     text-decoration: none;
 }
 
-.btn:hover, button:hover, .categories > li:hover, .backBtn:hover, .sideBtn:hover {
+.btn:hover, button:hover, .categories > li:hover, .levels > li:hover, .backBtn:hover, .sideBtn:hover {
     background-color:rgb(96, 96, 96);
     border: 3px solid black;
     cursor: pointer;
@@ -50,7 +50,12 @@ button {
     font-size: 32px;
 }
   
-ul{
+.levels{
+    list-style-type: none;
+    columns: 1;
+    padding: 20px;
+  }
+  .categories {
     list-style-type: none;
     columns: 2;
     padding: 20px;
