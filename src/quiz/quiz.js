@@ -8,11 +8,9 @@ import { getAuth } from 'firebase/auth'
 
 function Quiz() {
     const [user, setUser] = useState([])
-    const auth = getAuth()
+    const auth = getAuth();
 
-
-
-    const loc = useLocation()
+    const loc = useLocation();
     const url = 'https://the-trivia-api.com/v2';
 
     const [questionData, setQuestionData] = useState([]);
@@ -82,16 +80,6 @@ function Quiz() {
 
     const doneLoading = () => {
         setIsLoading(false);
-<<<<<<< HEAD
-=======
-        const min = document.querySelector('.minutes');
-        const colon = document.querySelector('.colon');
-        const sec = document.querySelector(".seconds");
-
-        min.style.display = 'inline';
-        colon.style.display = 'inline';
-        sec.style.display = 'inline';
->>>>>>> cf9233db2eb07b625dfb2dcbd65612024aba04f9
         timer();
     }
 
@@ -147,35 +135,19 @@ function Quiz() {
         }
     }
 
-<<<<<<< HEAD
-    const timer = async () => {
-        const mins = document.querySelector('.minutes');
-        const secs = document.querySelector('.seconds');
-=======
     const timer = () => {
 
         const min = document.querySelector('.minutes');
         const sec = document.querySelector('.seconds');
->>>>>>> cf9233db2eb07b625dfb2dcbd65612024aba04f9
         let totalSeconds = 0;
 
         setInterval(setTime, 1000);
-<<<<<<< HEAD
-    
-        console.log(mins)
-        console.log(secs)
-        function setTime() {
-            ++totalSeconds;
-            secs.textContent = pad(totalSeconds % 60);
-            mins.textContent = pad(parseInt(totalSeconds / 60));
-=======
 
         function setTime() {
             ++totalSeconds;
 
             sec.textContent = pad(totalSeconds % 60);
             min.textContent = pad(parseInt(totalSeconds / 60));
->>>>>>> cf9233db2eb07b625dfb2dcbd65612024aba04f9
         }
 
         function pad(val) {
@@ -215,13 +187,9 @@ function Quiz() {
 
                 {!isLoading && questionData && !finished &&
                     <>
-<<<<<<< HEAD
                         <p className="minutes">00</p>
                         <p className="colon">:</p>
                         <p className="seconds">00</p>
-=======
-
->>>>>>> cf9233db2eb07b625dfb2dcbd65612024aba04f9
                         <h1 className='questionNo'>Question No.{questionNo + 1}</h1>
 
                         <h3 className='question'>{questionData[questionNo]?.question.text}</h3>
