@@ -22,6 +22,22 @@ function Quiz() {
     const [score, setScore] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Handle user state changes
+    async function onAuthStateChanged(user) {
+        if (user) {
+            const userDocRefocRef = doc(db, 'users', user.uid)
+            const userSnap = await getDoc(userDocRefocRef);
+            setUser(userSnap.data());
+            console.log(userSnap.data())
+        }
+    }
+
+    useEffect(() => {
+        const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+
+        return subscriber; // unsubscribe on unmount
+    }, []);
+
     useEffect(() => {
         const unloadCallback = (event) => {
             event.preventDefault();
@@ -36,7 +52,7 @@ function Quiz() {
 
     useEffect(() => {
         const fetchQuestions = async () => {
-            await fetch(`${url}/questions?categories=${loc.state.cat}&difficulty=${loc.state.lvl}`)
+            await fetch(`${url}/questions?categories=${loc.state.cat}&difficulty=${loc.state.level}`)
                 .then((res) => { return res.json(); })
                 .then((data) => {
                     console.log(data);
@@ -98,7 +114,12 @@ function Quiz() {
 
     }
 
-    const finishQuiz = () => {
+    const finishQuiz = async () => {
+        const finalScore = document.querySelector('.finalScore');
+        const finalTime = document.querySelector('.finalTime');
+        finalScore.style.display = 'block';
+        finalTime.style.display = 'block';
+
         const min = document.querySelector('.minutes');
         const colon = document.querySelector('.colon');
         const sec = document.querySelector('.seconds');
@@ -111,10 +132,16 @@ function Quiz() {
 
         const finalMin = min.textContent;
         const finalSec = sec.textContent;
-        console.log(finalMin);
-        console.log(finalSec);
 
         time.textContent = `${finalMin}:${finalSec}`
+        if (user) {
+            const minInt = parseInt(min.textContent);
+            const secInt = parseInt(sec.textContent);
+            console.log(`leaderboards/${loc.state.cat}/${loc.state.level}`)
+            const colRef = collection(db, `leaderboards/${loc.state.cat}/${loc.state.level}`)
+            await addDoc(colRef, { username: user.username, uid: user.uid, score: score, time: ((minInt * 60) + secInt) })
+
+        }
     }
 
     const timer = () => {
