@@ -106,6 +106,11 @@ function Home() {
         navigate('/leaderboard', { state: Object.keys(categories) })
     }
 
+    const signOut = () => {
+        auth.signOut();
+        window.location.reload()
+    }
+
     if (initializing) return null;
 
     return (
@@ -117,7 +122,7 @@ function Home() {
                             <>
                                 <a className="welcomeMes">Welcome, {user.username}</a>
                                 <Link className="sideBtn" to={"/settings"}>Settings</Link>
-                                <a className="sideBtn" onClick={() => auth.signOut()}>Log Out</a>
+                                <a className="sideBtn" onClick={() => signOut()}>Log Out</a>
                             </>
                             :
                             <>
