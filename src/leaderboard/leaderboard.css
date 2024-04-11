@@ -1,0 +1,53 @@
+.leaderboardList {
+    border-spacing: 16px;
+}
+
+.leaderboardEntry {
+    
+    color: rgb(34, 31, 54);
+    padding: 8px;
+    font-size: 20px;
+    margin-top: 8px;
+
+}
+
+.leaderboardHeaders {
+    color: rgb(34, 31, 54);
+    font-size: 20px;
+    font-weight: 700;
+}
+.leaderboardHeaders > th {
+    border-bottom: 2px solid black;
+}
+
+.scoreTabs {
+    width: 100%;
+    height: 50px;
+    color: rgb(34, 31, 54);
+    display: none;
+    margin-bottom: 16px;
+}
+
+.activeScoreTab {
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset,
+        rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
+}
+
+.inactiveScoreTab:hover {
+    background-color: rgb(96, 96, 96);
+    border: 1px solid black;
+    cursor: pointer;
+}
+
+.scoreTabs>a {
+    display: inline-block;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    width: 49%;
+    height: 100%;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    padding-top: 10px;
+    border: 1px solid lightgray;
+}
