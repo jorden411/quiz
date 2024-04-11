@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import './quiz.css';
 import { db, auth } from '../firebase-config'
 import { collection, getDoc, getDocs, doc, addDoc, updateDoc, setDoc } from "@firebase/firestore"
@@ -9,6 +9,7 @@ import { getAuth } from 'firebase/auth'
 function Quiz() {
     const [user, setUser] = useState([])
     const auth = getAuth();
+    const navigate = useNavigate();
 
     const loc = useLocation();
     const url = 'https://the-trivia-api.com/v2';
@@ -26,7 +27,7 @@ function Quiz() {
             const userDocRefocRef = doc(db, 'users', user.uid)
             const userSnap = await getDoc(userDocRefocRef);
             setUser(userSnap.data());
-            console.log(userSnap.data())
+            console.log(userSnap.data().uid)
         }
     }
 
@@ -80,6 +81,14 @@ function Quiz() {
 
     const doneLoading = () => {
         setIsLoading(false);
+        const min = document.querySelector('.minutes');
+        const colon = document.querySelector('.colon');
+        const sec = document.querySelector('.seconds');
+
+        min.style.display = 'inline-block';
+        colon.style.display = 'inline-block';
+        sec.style.display = 'inline-block';
+
         timer();
     }
 
@@ -89,21 +98,27 @@ function Quiz() {
         }
 
         if (questionNo < 9) {
-            console.log(ans);
             setChosenAnswers([...chosenAnswers, ans]);
 
             setQuestionNo(questionNo + 1);
-            console.log(chosenAnswers);
         } else {
             setChosenAnswers([...chosenAnswers, ans]);
-            for (let i = 0; i < chosenAnswers.length; i++) {
-                chosenAnswers[i] = questionData
-            }
+            // for (let i = 0; i < chosenAnswers.length; i++) {
+            //     chosenAnswers[i] = questionData
+            // }
             setFinished(true);
-            finishQuiz()
+            
         }
 
     }
+    useEffect(() => {
+        console.log(score);
+        console.log(chosenAnswers);
+        console.log(chosenAnswers.length)
+        if (chosenAnswers.length == 10) {
+            finishQuiz()
+        }
+    },[chosenAnswers])
 
     const finishQuiz = async () => {
         const finalScore = document.querySelector('.finalScore');
@@ -128,9 +143,32 @@ function Quiz() {
         if (user) {
             const minInt = parseInt(min.textContent);
             const secInt = parseInt(sec.textContent);
+            const timeTaken = ((minInt * 60) + secInt);
+
             console.log(`leaderboards/${loc.state.cat}/${loc.state.level}`)
             const colRef = collection(db, `leaderboards/${loc.state.cat}/${loc.state.level}`)
-            await addDoc(colRef, { username: user.username, uid: user.uid, score: score, time: ((minInt * 60) + secInt) })
+
+            const docRef = doc(db, `leaderboards/${loc.state.cat}/${loc.state.level}/${user.uid}`)
+            console.log(docRef)
+            await getDoc(docRef).then(async (doc) => {
+
+                if (doc.data()) {
+                    let preScore = doc.data().score;
+                    let preTime = doc.data().time;
+
+                    console.log(preScore);
+                    console.log(score);
+                    console.log(preTime);
+                    console.log(timeTaken);
+
+                    if (preScore < score || (preScore == score && timeTaken < preTime)) {
+                        await setDoc(docRef, { username: user.username, uid: user.uid, score: score, time: timeTaken })
+                    }
+                } else {
+                    await setDoc(docRef, { username: user.username, uid: user.uid, score: score, time: timeTaken })
+                }
+            })
+
 
         }
     }
@@ -159,6 +197,10 @@ function Quiz() {
                 return valString;
             }
         }
+    }
+
+    const goToLeaderboardFromQuiz = () => {
+        navigate('/leaderboard', { state: { from: 'quiz', cat: loc.state.cat, level: loc.state.level} })
     }
 
     return (
@@ -220,7 +262,7 @@ function Quiz() {
                                 <a className="dark">Your Answer: {chosenAnswers[index]}</a>
                             </div>
                         })}
-                        <Link className="btn" to={{ pathname: "/leaderboard" }}>Leaderboard</Link>
+                        <button className="btn" onClick={() => goToLeaderboardFromQuiz()}>Leaderboard</button>
                         <Link className="btn" to={"/home"}>Main Menu</Link>
                     </>
                 }
