@@ -24,9 +24,7 @@ function Auth() {
     useEffect(() => {
         const getUsernames = async () => {
             const docRef = doc(db, 'usernames', 'usernames');
-            console.log(docRef)
             const docSnap = await getDoc(docRef);
-            console.log(docSnap.data().usernames);
             setUsernames(docSnap.data().usernames);
         }
         getUsernames()
@@ -101,7 +99,7 @@ function Auth() {
                 const errorCode = error.code;
                 const errorMessage = error.message;
                 console.log(errorCode);
-                if (errorCode == 'auth/invalid-password' || errorCode == 'auth/invalid-email') {
+                if (errorCode == 'auth/invalid-password' || errorCode == 'auth/invalid-email' || errorCode == 'auth/invalid-credential') {
                     errMes.textContent = "Email and/or Password don't match. Please try again.";
                 } else {
                     errMes.textContent = "Error please refresh and try again.";
