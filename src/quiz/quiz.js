@@ -76,7 +76,37 @@ function Quiz() {
         }
         fetchQuestions();
         setUser(auth.currentUser);
+        textToSpeech()
+
     }, []);
+
+    const textToSpeech = async () => {
+        console.log(questionData);
+        const url = 'https://voicerss-text-to-speech.p.rapidapi.com/?key=%3CREQUIRED%3E';
+        const options = {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded',
+                'X-RapidAPI-Key': '650b228226msheca9745575e163fp150ff4jsn89f5474c7c52',
+                'X-RapidAPI-Host': 'voicerss-text-to-speech.p.rapidapi.com'
+            },
+            body: new URLSearchParams({
+                src: 'Hello, world!',
+                hl: 'en-us',
+                r: '0',
+                c: 'mp3',
+                f: '8khz_8bit_mono'
+            })
+        };
+
+        try {
+            const response = await fetch(url, options);
+            const result = await response.text();
+            console.log(result);
+        } catch (error) {
+            console.error(error);
+        }
+    }
     console.log(questionData);
 
     const doneLoading = () => {
@@ -107,7 +137,7 @@ function Quiz() {
             //     chosenAnswers[i] = questionData
             // }
             setFinished(true);
-            
+
         }
 
     }
@@ -118,7 +148,7 @@ function Quiz() {
         if (chosenAnswers.length == 10) {
             finishQuiz()
         }
-    },[chosenAnswers])
+    }, [chosenAnswers])
 
     const finishQuiz = async () => {
         const finalScore = document.querySelector('.finalScore');
@@ -200,7 +230,7 @@ function Quiz() {
     }
 
     const goToLeaderboardFromQuiz = () => {
-        navigate('/leaderboard', { state: { from: 'quiz', cat: loc.state.cat, level: loc.state.level} })
+        navigate('/leaderboard', { state: { from: 'quiz', cat: loc.state.cat, level: loc.state.level } })
     }
 
     return (
@@ -237,10 +267,10 @@ function Quiz() {
                         <h3 className='question'>{questionData[questionNo]?.question.text}</h3>
 
                         <ul className='answers'>
-                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[0])}>{questionData[questionNo]?.answers[0]}</li>
-                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[1])}>{questionData[questionNo]?.answers[1]}</li>
-                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[2])}>{questionData[questionNo]?.answers[2]}</li>
-                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[3])}>{questionData[questionNo]?.answers[3]}</li>
+                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[0])}>A. {questionData[questionNo]?.answers[0]}</li>
+                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[1])}>B. {questionData[questionNo]?.answers[1]}</li>
+                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[2])}>C. {questionData[questionNo]?.answers[2]}</li>
+                            <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[3])}>D. {questionData[questionNo]?.answers[3]}</li>
                         </ul>
                     </>
 

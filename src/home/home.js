@@ -4,6 +4,9 @@ import './home.css';
 import { collection, getDoc, getDocs, doc, addDoc } from "@firebase/firestore"
 import { db, auth } from '../firebase-config'
 import { getAuth } from 'firebase/auth'
+import { Polly } from "aws-sdk";
+import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
+
 
 
 
@@ -30,8 +33,26 @@ function Home() {
 
     const [chosenCat, setChosenCat] = useState(String);
 
+    const client = new PollyClient({
+        accessKeyId: "AKIA5FTZB3MQFG25IT5H",
+        secretAccessKey: "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",
+        region: "eu-west-2"
+    })
 
     const url = 'https://the-trivia-api.com/v2';
+    useEffect(() => {
+        const text = () => {
+            SynthesizeSpeechCommand()
+
+
+            polly = client("polly", region_name = "us-east-1")
+            response = polly.synthesize_speech(
+                Text = "Hi. My name is Joanna.",
+                OutputFormat = "mp3",
+                VoiceId = "Joanna")
+        }
+        text();
+    }, [])
 
     // Handle user state changes
     async function onAuthStateChanged(user) {
