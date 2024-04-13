@@ -22,15 +22,17 @@ function Leaderboard() {
     const [displayLevels, setDisplayLevels] = useState(false);
 
     const [selectedCat, setSelectedCat] = useState(String);
+    const [selectedLvl, setSelectedLvl] = useState(String);
 
     const [isTopTen, setIsTopTen] = useState(true);
 
     const [displayLeaderboard, setDisplayLeaderboard] = useState(false);
 
-    const [retrievedDocs, setRetrievedDocs] = useState(Array);
+    const [retrievedTopTenDocs, setRetrievedTopTenDocs] = useState(Array);
+    const [retrievedYourScoreDocs, setRetrievedYourScoreDocs] = useState(Array);
 
-     // Handle user state changes
-     async function onAuthStateChanged(user) {
+    // Handle user state changes
+    async function onAuthStateChanged(user) {
         if (user) {
             const userDocRefocRef = doc(db, 'users', user.uid)
             const userSnap = await getDoc(userDocRefocRef);
@@ -38,6 +40,8 @@ function Leaderboard() {
             console.log(userSnap.data().uid)
         }
     }
+
+    
 
     useEffect(() => {
         const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
@@ -83,10 +87,11 @@ function Leaderboard() {
     const selectedLevel = (lvl, cat) => {
         const scoreTabs = document.querySelector('.scoreTabs')
         scoreTabs.style.display = 'block'
+        setSelectedLvl(lvl);
         setDisplayLeaderboard(true);
         setIsLoading(true);
         topTen(lvl, cat)
-
+        yourScore(lvl, cat);
     }
 
     const switchTabs = () => {
@@ -112,14 +117,12 @@ function Leaderboard() {
             let mins = Math.floor(timeInt / 60).toString().length == 1 ? `0${Math.floor(timeInt / 60)}` : `${Math.floor(timeInt / 60)}`;
 
             let secs = (timeInt % 60).toString().length == 1 ? `0${timeInt % 60}` : `${timeInt % 60}`;
-
-            //secs = secs.
-
             docs.push({ ...doc.data(), rank: rank, timeInMins: `${mins}:${secs}`, id: doc.id });
 
             rank++
         })
-        setRetrievedDocs(docs)
+        console.log('top ten docs', docs)
+        setRetrievedTopTenDocs(docs)
 
         setIsLoading(false);
         setDisplayLevels(false);
@@ -136,10 +139,90 @@ function Leaderboard() {
         const q = query(collection(db, `leaderboards/${queryCat}/${lvl}`), orderBy('score', 'desc'), orderBy('time', 'asc'));
         let rank = 1;
         let docs = [];
+        let preDocs = [];
+        let userDoc = [];
+        let postDocs = [];
+        let userDocFound = false;
+
         const querySnapshot = await getDocs(q).then((doc) => {
             console.log(doc)
             console.log(doc.docs)
-            console.log(doc.id)
+            for (let i = 0; i < doc.docs.length; i++) {
+                console.log(doc.docs[i].id);
+                console.log(doc.docs[i].data());
+                // Format Time
+                const timeInt = parseInt(doc.docs[i].data().time)
+                let mins = Math.floor(timeInt / 60).toString().length == 1 ? `0${Math.floor(timeInt / 60)}` : `${Math.floor(timeInt / 60)}`;
+                let secs = (timeInt % 60).toString().length == 1 ? `0${timeInt % 60}` : `${timeInt % 60}`;
+                //docs.push({ ...doc.data(), rank: rank, timeInMins: `${mins}:${secs}`, id: doc.id });
+
+                // Check if its the users score
+                if (doc.docs[i].id == user.uid) {
+                    userDocFound = true;
+                    userDoc.push({ ...doc.docs[i].data(), rank: rank, timeInMins: `${mins}:${secs}`, id: doc.docs[i].id })
+                }
+                // Skip adding to post or pre if it is the users doc
+                if (!userDocFound) {
+                    if (userDoc.length == 0) {
+                        if (preDocs.length == 9) {
+                            preDocs.shift()
+                        }
+                        preDocs.push({ ...doc.docs[i].data(), rank: rank, timeInMins: `${mins}:${secs}`, id: doc.docs[i].id })
+                    } else {
+                        if ((preDocs.length == 0 && postDocs.length == 9) || ((preDocs.length <= 4) && (postDocs.length + preDocs.length == 9)) || (preDocs.length > 4 && postDocs.length == 5)) {
+                            break;
+                        } else {
+                            // Add document data to post linked list
+                            postDocs.push({ ...doc.docs[i].data(), rank: rank, timeInMins: `${mins}:${secs}`, id: doc.docs[i].id });
+                        }
+                    }
+
+                } else {
+                    userDocFound = false;
+                }
+                rank++
+                console.log(preDocs)
+            }
+
+            // Remove items from pre until sizes of pre + post == 9
+            console.log(preDocs.length)
+            console.log(postDocs.length)
+            if ((postDocs.length + preDocs.length) > 9) {
+                if (postDocs.length > 0) {
+                    let len = ((postDocs.length + preDocs.length) - 9);
+                    for (let i = 0; i < len; i++) {
+                        preDocs.shift();
+                        console.log('unshift')
+                        console.log(preDocs.length)
+                    }
+                }
+            }
+            console.log(preDocs.length);
+            // Populate docs with preDocs
+            let docNo = 0;
+            if (preDocs.length > 0) {
+                for (let i = 0; i < preDocs.length; i++) {
+                    docs[docNo] = preDocs[i];
+                    docNo += 1;
+                }
+            }
+
+            // Populate displayDocs with the users doc after all the pre docs
+            if (userDoc.length == 1) {
+                docs[docNo] = userDoc[0];
+                docNo += 1;
+            }
+
+
+            // Populate displayDocs with post docs after all pre docs and user doc
+            if (postDocs.length > 0) {
+                for (let i = 0; i < postDocs.length; i++) {
+                    docs[docNo] = postDocs[i];
+                    docNo += 1;
+                }
+            }
+            console.log('docs', docs)
+            setRetrievedYourScoreDocs(docs);
         })
 
 
@@ -147,7 +230,7 @@ function Leaderboard() {
 
     return (
         <div>
-            <div className="page">
+            <div className="leaderboardPage">
                 <h1 className='title'>Leaderboards</h1>
                 <div className='scoreTabs'>
                     {displayLeaderboard && isTopTen &&
@@ -191,66 +274,93 @@ function Leaderboard() {
                 }
                 {displayLeaderboard && isTopTen &&
                     <>
-                        <table className='leaderboardList'>
-                            <tr className='leaderboardHeaders'>
-                                <th>Rank</th>
-                                <th>Username</th>
-                                <th>Score</th>
-                                <th>Time</th>
-                            </tr>
-                            {
+                        {!retrievedTopTenDocs.length == 0 ?
+                            <>
+                                <table className='leaderboardList'>
+                                    <tr className='leaderboardHeaders'>
+                                        <th>Rank</th>
+                                        <th>Username</th>
+                                        <th>Score</th>
+                                        <th>Time</th>
+                                    </tr>
 
-                                retrievedDocs.map((doc, index) => {
-                                    console.log(doc.id)
-                                    console.log(user.uid)
-                                    if (doc.id == user.uid) {
-                                        const userEntry = document.querySelector('.leaderboardEntry')
-                                        userEntry.style.backgroundColor = 'rgb(34, 31, 54)';
-                                        userEntry.style.color = 'white';
-                                        
+                                    {
+                                        retrievedTopTenDocs.map((doc, index) => {
+                                            let usersDoc = false
+                                            if (doc.id == user.uid) {
+                                                usersDoc = true;
+                                            }
+                                            return (
+                                                <tr className={usersDoc ? 'userLeaderboardEntry' : 'leaderboardEntry'}>
+                                                    <td>{doc.rank}</td>
+                                                    <td>{doc.username}</td>
+                                                    <td>{doc.score}</td>
+                                                    <td>{doc.timeInMins}</td>
+                                                </tr>
+                                            )
+                                        })
                                     }
-                                    return (
-                                        <tr className='leaderboardEntry'>
-                                            <td>{doc.rank}</td>
-                                            <td>{doc.username}</td>
-                                            <td>{doc.score}</td>
-                                            <td>{doc.timeInMins}</td>
-                                        </tr>
-                                    )
-                                })
+                                </table>
+                            </>
+                            :
+                            <>
+                                <h1>There has been no score set for this category and level.</h1>
+                            </>
 
-                            }
-                        </table>
+
+                        }
                         <br />
                         <Link className="backBtn" to={'/home'}>Main Menu</Link>
                     </>
                 }
                 {displayLeaderboard && !isTopTen &&
                     <>
-                        <table className='leaderboardList'>
-                            <tr className='leaderboardHeaders'>
-                                <th>Rank</th>
-                                <th>Username</th>
-                                <th>Score</th>
-                                <th>Time</th>
-                            </tr>
-                            {
+                        {user.uid ?
+                            <>
+                                {!retrievedYourScoreDocs.length == 0 ?
+                                    <>
+                                        <table className='leaderboardList'>
+                                            <tr className='leaderboardHeaders'>
+                                                <th>Rank</th>
+                                                <th>Username</th>
+                                                <th>Score</th>
+                                                <th>Time</th>
+                                            </tr>
+                                            {
+                                                retrievedYourScoreDocs.map((doc, index) => {
+                                                    let usersDoc = false
+                                                    if (doc.id == user.uid) {
+                                                        usersDoc = true;
+                                                    }
+                                                    return (
+                                                        <tr className={usersDoc ? 'userLeaderboardEntry' : 'leaderboardEntry'}>
+                                                            <td>{doc.rank}</td>
+                                                            <td>{doc.username}</td>
+                                                            <td>{doc.score}</td>
+                                                            <td>{doc.timeInMins}</td>
+                                                        </tr>
+                                                    )
+                                                })
 
-                                retrievedDocs.map((doc, index) => {
-                                    return (
-                                        <tr className='leaderboardEntry'>
-                                            <td>{doc.rank}</td>
-                                            <td>{doc.username}</td>
-                                            <td>{doc.score}</td>
-                                            <td>{doc.timeInMins}</td>
-                                        </tr>
-                                    )
-                                })
-
-                            }
-                        </table>
-                        <br />
-                        <Link className="backBtn" to={'/home'}>Main Menu</Link>
+                                            }
+                                        </table>
+                                    </>
+                                    :
+                                    <>
+                                        <h1>There has been no score set for this category and level.</h1>
+                                    </>
+                                }
+                                <br />
+                                <Link className="backBtn" to={'/home'}>Main Menu</Link>
+                            </>
+                            :
+                            <>
+                                <h1>Please log in to see your score on the leaderboard.</h1>
+                                <Link className="btn" to={"/auth"}>Sign In</Link>
+                                <br />
+                                <Link className="backBtn" to={'/home'}>Main Menu</Link>
+                            </>
+                        }
                     </>
                 }
             </div>

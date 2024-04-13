@@ -1,14 +1,41 @@
+.leaderboardPage {
+    background-color: lightgray;
+    padding: 10px 10px 60px 10px;
+    margin: 10vh auto;
+    color: white;
+  
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px,
+      rgba(0, 0, 0, 0.3) 0px 18px 36px -18px;
+    
+    width: 60%;
+    
+  
+    border-radius: 16px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
 .leaderboardList {
+    border-collapse: collapse;
     border-spacing: 16px;
+    width: 40%;
+    text-align: center;
 }
 
 .leaderboardEntry {
-    
     color: rgb(34, 31, 54);
-    padding: 8px;
+    font-size: 20px;
+    margin-top: 16px;
+
+}
+.userLeaderboardEntry {
+    background-color: rgb(34, 31, 54);
+    color: white;
     font-size: 20px;
     margin-top: 8px;
-
+    border-radius: 5px;
 }
 
 .leaderboardHeaders {
@@ -19,6 +46,9 @@
 .leaderboardHeaders > th {
     border-bottom: 2px solid black;
 }
+th, td {
+    padding: 8px;
+  }
 
 .scoreTabs {
     width: 100%;
