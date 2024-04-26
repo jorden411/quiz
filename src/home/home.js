@@ -4,10 +4,7 @@ import './home.css';
 import { collection, getDoc, getDocs, doc, addDoc } from "@firebase/firestore"
 import { db, auth } from '../firebase-config'
 import { getAuth } from 'firebase/auth'
-import { Polly } from "aws-sdk";
-import { PollyClient, SynthesizeSpeechCommand } from "@aws-sdk/client-polly";
-
-
+import { PollyClient, SynthesizeSpeechCommand, StartSpeechSynthesisTaskCommand, } from "@aws-sdk/client-polly";
 
 
 function Home() {
@@ -33,23 +30,51 @@ function Home() {
 
     const [chosenCat, setChosenCat] = useState(String);
 
+    const [textResponse, setTextResponse] = useState();
+
     const client = new PollyClient({
-        accessKeyId: "AKIA5FTZB3MQFG25IT5H",
-        secretAccessKey: "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",
-        region: "eu-west-2"
+        region: "eu-west-2",
+        credentials: {
+            accessKeyId: "AKIA5FTZB3MQFG25IT5H",
+            secretAccessKey: "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",
+        }
     })
+
 
     const url = 'https://the-trivia-api.com/v2';
     useEffect(() => {
-        const text = () => {
-            SynthesizeSpeechCommand()
+        const text = async () => {
 
+            const input = {
+                Engine: "standard",
+                OutputFormat: "mp3", // required
+                OutputS3BucketName: "ci601", // required
+                Text: "I", // required
+                VoiceId: "Joanna", // required
+            };
+            const command = new SynthesizeSpeechCommand(input);
 
-            polly = client("polly", region_name = "us-east-1")
-            response = polly.synthesize_speech(
-                Text = "Hi. My name is Joanna.",
-                OutputFormat = "mp3",
-                VoiceId = "Joanna")
+            const response = await client.send(command).then((res) => {
+                console.log(res)
+                const uInt8Array = new Uint8Array(res.AudioStream)
+                const arrayBuffer = uInt8Array.buffer;
+                const blob = new Blob([arrayBuffer]);
+
+                
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio();
+                audio[0].src = url;
+                audio[0].play();
+
+            })
+            console.log(response);
+            setTextResponse(response);
+            console.log(textResponse);
+            // polly = client("polly", region_name = "us-east-1")
+            // response = polly.synthesize_speech(
+            //     Text = "Hi. My name is Joanna.",
+            //     OutputFormat = "mp3",
+            //     VoiceId = "Joanna")
         }
         text();
     }, [])
