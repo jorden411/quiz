@@ -4,6 +4,9 @@ import './quiz.css';
 import { db, auth } from '../firebase-config'
 import { collection, getDoc, getDocs, doc, addDoc, updateDoc, setDoc } from "@firebase/firestore"
 import { getAuth } from 'firebase/auth'
+import { PollyClient, SynthesizeSpeechCommand, StartSpeechSynthesisTaskCommand, GetSpeechSynthesisTaskCommand, GetSpeechSynthesisTaskCommandOutput } from "@aws-sdk/client-polly";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlay } from '@fortawesome/free-solid-svg-icons'
 
 
 function Quiz() {
@@ -21,13 +24,30 @@ function Quiz() {
     const [score, setScore] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [useTTS, setUseTTS] = useState(true);
+    const [ttsUris, setTTSUris] = useState([]);
+    const [testTTS, setTestTTS] = useState(['I', 'U']);
+
+    console.log(questionData);
+
+    const client = new PollyClient({
+        region: "eu-west-2",
+        credentials: {
+            accessKeyId: "AKIA5FTZB3MQFG25IT5H",
+            secretAccessKey: "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",
+        }
+    })
+
+
+
+
+
     // Handle user state changes
     async function onAuthStateChanged(user) {
         if (user) {
             const userDocRefocRef = doc(db, 'users', user.uid)
             const userSnap = await getDoc(userDocRefocRef);
             setUser(userSnap.data());
-            console.log(userSnap.data().uid)
         }
     }
 
@@ -50,12 +70,16 @@ function Quiz() {
     }, []);
 
     useEffect(() => {
+        //let qData = []
         const fetchQuestions = async () => {
             await fetch(`${url}/questions?categories=${loc.state.cat}&difficulty=${loc.state.level}`)
                 .then((res) => { return res.json(); })
-                .then((data) => {
-                    console.log(data);
+                .then(async (data) => {
+                    let qid = 0;
                     data.forEach(e => {
+                        e.qid = qid;
+                        qid++
+
                         const rand = Math.floor(Math.random() * (4) + 1);
                         const answers = [];
 
@@ -69,6 +93,11 @@ function Quiz() {
                         e.answers = answers;
                     });
                     setQuestionData(data);
+                    //qData = data;
+                    //console.log(qData);
+                    if (useTTS) {
+                        await textToSpeech(data)
+                    }
                 })
                 .catch((err) => {
                     console.log(err.message);
@@ -76,37 +105,97 @@ function Quiz() {
         }
         fetchQuestions();
         setUser(auth.currentUser);
-        textToSpeech()
+
+        const textToSpeech = async (qData) => {
+
+            if (useTTS) {
+
+                let uris = [];
+                for (let i = 0; i < qData.length; i++) {
+
+                    if (qData.length > 0) {
+                        console.log(qData);
+
+                        const input = {
+                            OutputFormat: "mp3",
+                            OutputS3BucketName: "ci601", // required
+                            Text: qData[i].question.text,
+                            //Text: "I",
+                            TextType: "text",
+                            VoiceId: "Joanna"
+                        };
+                        console.log(input)
+                        const command = new StartSpeechSynthesisTaskCommand(input);
+
+                        await client.send(command)
+                            .then((res) => {
+                                console.log(res)
+                                if (res.$metadata.httpStatusCode !== 200) {
+                                    console.error("Error occurred:", res.$metadata.httpStatusCode);
+                                } else {
+                                    //setTaskId(res.SynthesisTask.TaskId);
+                                    // const getTTSInput = {
+                                    //     TaskId: res.SynthesisTask.TaskId
+                                    // };
+                                    // const task = new GetSpeechSynthesisTaskCommand(getTTSInput)
+                                    // const gottenTask = await client.send(task);
+                                    // console.log(gottenTask);
+                                    //setQuestionData(questionData.map(q => q.qid == 0 ? { ...q, tts: res.SynthesisTask.OutputUri } : q))
+
+                                    uris.push({ qid: i, tts: res.SynthesisTask.OutputUri })
+
+                                }
+
+
+                            })
+                    }
+                }
+                console.log(uris);
+                setTTSUris(uris);
+                console.log(ttsUris)
+            } else {
+                console.log('tts false')
+                console.log(ttsUris)
+            }
+        }
+        
+
 
     }, []);
 
-    const textToSpeech = async () => {
-        console.log(questionData);
-        const url = 'https://voicerss-text-to-speech.p.rapidapi.com/?key=%3CREQUIRED%3E';
-        const options = {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/x-www-form-urlencoded',
-                'X-RapidAPI-Key': '650b228226msheca9745575e163fp150ff4jsn89f5474c7c52',
-                'X-RapidAPI-Host': 'voicerss-text-to-speech.p.rapidapi.com'
-            },
-            body: new URLSearchParams({
-                src: 'Hello, world!',
-                hl: 'en-us',
-                r: '0',
-                c: 'mp3',
-                f: '8khz_8bit_mono'
-            })
-        };
 
-        try {
-            const response = await fetch(url, options);
-            const result = await response.text();
-            console.log(result);
-        } catch (error) {
-            console.error(error);
-        }
-    }
+    // useEffect(() => {
+
+    //text();
+    // }, [])
+
+    // const textToSpeech = async () => {
+    //     console.log(questionData);
+    //     const url = 'https://voicerss-text-to-speech.p.rapidapi.com/?key=%3CREQUIRED%3E';
+    //     const options = {
+    //         method: 'POST',
+    //         headers: {
+    //             'content-type': 'application/x-www-form-urlencoded',
+    //             'X-RapidAPI-Key': '650b228226msheca9745575e163fp150ff4jsn89f5474c7c52',
+    //             'X-RapidAPI-Host': 'voicerss-text-to-speech.p.rapidapi.com'
+    //         },
+    //         body: new URLSearchParams({
+    //             src: 'Hello, world!',
+    //             hl: 'en-us',
+    //             r: '0',
+    //             c: 'mp3',
+    //             f: '8khz_8bit_mono'
+    //         })
+    //     };
+
+    //     try {
+    //         const response = await fetch(url, options);
+    //         const result = await response.text();
+    //         console.log(result);
+    //     } catch (error) {
+    //         console.error(error);
+    //     }
+    // }
     console.log(questionData);
 
     const doneLoading = () => {
@@ -120,9 +209,42 @@ function Quiz() {
         sec.style.display = 'inline-block';
 
         timer();
+        const audioElement = document.querySelector(".TTS");
+        audioElement.src = ttsUris[questionNo].tts;
+    }
+
+    const play = () => {   
+        const audioElement = document.querySelector(".TTS");
+        console.log(audioElement.src);
+        // console.log(audioElement.src == ttsUris[qNo].tts)
+        // if (audioElement.src == ttsUris[qNo].tts) {
+        //     audioElement.play();
+        // } else {
+        //     audioElement.src = ttsUris[qNo].tts;
+            
+        // }
+        if (audioElement.src) {
+            audioElement.play().then(() => {})
+            .catch(error => {
+                console.log(error)
+                audioElement.src = ttsUris[questionNo].tts;
+                play();
+            });
+        } else {
+            audioElement.src = ttsUris[questionNo].tts;
+        }
+        
+        
+        
     }
 
     const updateQuestion = (ans) => {
+        if (questionNo < 10) {
+            
+        }
+        const audioElement = document.querySelector(".TTS");
+        audioElement.src = ttsUris[questionNo+1].tts;
+
         if (ans == questionData[questionNo].correctAnswer) {
             setScore(score + 1);
         }
@@ -142,9 +264,6 @@ function Quiz() {
 
     }
     useEffect(() => {
-        console.log(score);
-        console.log(chosenAnswers);
-        console.log(chosenAnswers.length)
         if (chosenAnswers.length == 10) {
             finishQuiz()
         }
@@ -235,7 +354,7 @@ function Quiz() {
 
     return (
         <div className="Quiz">
-
+            <audio className="TTS" src=""></audio>
             <div className='page'>
                 <div className="timer">
                     <h2 className="minutes">00</h2>
@@ -265,6 +384,9 @@ function Quiz() {
                         <h1 className='questionNo'>Question No.{questionNo + 1}</h1>
 
                         <h3 className='question'>{questionData[questionNo]?.question.text}</h3>
+                        {/* { useTTS && */}
+                        <FontAwesomeIcon className="play" title="Play Question" onClick={() => play(questionNo)} icon={faPlay} />
+                        {/* } */}
 
                         <ul className='answers'>
                             <li className='ansBtn' onClick={() => updateQuestion(questionData[questionNo]?.answers[0])}>A. {questionData[questionNo]?.answers[0]}</li>

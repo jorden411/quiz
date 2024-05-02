@@ -4,7 +4,8 @@ import './home.css';
 import { collection, getDoc, getDocs, doc, addDoc } from "@firebase/firestore"
 import { db, auth } from '../firebase-config'
 import { getAuth } from 'firebase/auth'
-import { PollyClient, SynthesizeSpeechCommand, StartSpeechSynthesisTaskCommand, } from "@aws-sdk/client-polly";
+import { PollyClient, SynthesizeSpeechCommand, StartSpeechSynthesisTaskCommand, GetSpeechSynthesisTaskCommand, GetSpeechSynthesisTaskCommandOutput } from "@aws-sdk/client-polly";
+
 
 
 function Home() {
@@ -13,8 +14,6 @@ function Home() {
 
     const auth = getAuth()
     const fireUser = auth.currentUser
-
-    console.log(fireUser)
 
     //  https://the-trivia-api.com/v2/questions?categories=
     // https://the-trivia-api.com/v2/categories
@@ -31,6 +30,9 @@ function Home() {
     const [chosenCat, setChosenCat] = useState(String);
 
     const [textResponse, setTextResponse] = useState();
+    const [taskId, setTaskId] = useState(String);
+
+    const url = 'https://the-trivia-api.com/v2';
 
     const client = new PollyClient({
         region: "eu-west-2",
@@ -40,44 +42,47 @@ function Home() {
         }
     })
 
-
-    const url = 'https://the-trivia-api.com/v2';
     useEffect(() => {
-        const text = async () => {
+        // const text = async () => {
 
-            const input = {
-                Engine: "standard",
-                OutputFormat: "mp3", // required
-                OutputS3BucketName: "ci601", // required
-                Text: "I", // required
-                VoiceId: "Joanna", // required
-            };
-            const command = new SynthesizeSpeechCommand(input);
+        //     const input = {
+        //         // OutputFormat: "mp3",
+        //         // OutputS3BucketName: "ci601", // required
+        //         // Text: "I",
+        //         // TextType: "text",
+        //         // VoiceId: "Joanna"
+        //         TaskId: '536827bf-29c7-41ae-aaeb-1649edf8d0ff'
+        //     };
+        //     //const command = new StartSpeechSynthesisTaskCommand(input);
 
-            const response = await client.send(command).then((res) => {
-                console.log(res)
-                const uInt8Array = new Uint8Array(res.AudioStream)
-                const arrayBuffer = uInt8Array.buffer;
-                const blob = new Blob([arrayBuffer]);
+        //     // await client.send(command)
+        //     //     .then((res) => {
+        //     //         console.log(res)
+        //     //         setTaskId(res.SynthesisTask.TaskId);
 
-                
-                const url = URL.createObjectURL(blob);
-                const audio = new Audio();
-                audio[0].src = url;
-                audio[0].play();
+        //     //         console.log(task)
+        //     //         if (res.$metadata.httpStatusCode !== 200) {
+        //     //             console.error("Error occurred:", res.$metadata.httpStatusCode);
+        //     //         }
+        //     //     })
 
-            })
-            console.log(response);
-            setTextResponse(response);
-            console.log(textResponse);
-            // polly = client("polly", region_name = "us-east-1")
-            // response = polly.synthesize_speech(
-            //     Text = "Hi. My name is Joanna.",
-            //     OutputFormat = "mp3",
-            //     VoiceId = "Joanna")
-        }
-        text();
+        //     const task = new GetSpeechSynthesisTaskCommand(input)
+        //     const gottenTask = await client.send(task);
+        //     console.log(gottenTask)
+
+        //     const audioElement = document.querySelector(".TTS");
+        //     audioElement.src = gottenTask.SynthesisTask.OutputUri;
+
+
+        // }
+        // text();
     }, [])
+
+    const play = () => {
+        // const audioElement = document.querySelector(".TTS");
+        // console.log(audioElement)
+        // audioElement.play();
+    }
 
     // Handle user state changes
     async function onAuthStateChanged(user) {
@@ -161,6 +166,7 @@ function Home() {
 
     return (
         <div className="Home">
+            {/* <audio className="TTS" src=""></audio> */}
             {displayHome &&
                 <div className="page">
                     <div className="side">
@@ -182,6 +188,7 @@ function Home() {
 
                     <h1>CI601 Quiz</h1>
 
+                    <button onClick={() => play()}>play</button>
                     <button onClick={toggleCats}>Start a Quiz!</button>
 
                     <button className="btn" onClick={goToLeaderboard}>Leaderboard</button>
@@ -190,6 +197,7 @@ function Home() {
             {displayCategories &&
                 <div className="page">
                     <h1>Category</h1>
+
                     <ul className="categories">
                         {
                             Object.keys(categories).map((cat, index) => {

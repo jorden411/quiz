@@ -94,3 +94,15 @@ h3,
   display: none;
 
 }
+
+.play {
+  color:rgb(34, 31, 54);
+  font-size: 20pt;
+  padding: 10px;
+  border-radius: 5px;
+}
+.play:hover {
+  background-color: rgb(34, 31, 54);
+  color: darkgray;
+  cursor: pointer;
+}
