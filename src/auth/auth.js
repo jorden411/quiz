@@ -68,7 +68,7 @@ function Auth() {
 
                     // Create user account reference in database
                     const userDocRef = doc(db, 'users', userCredential.user.uid)
-                    await setDoc(userDocRef, {uid: userCredential.user.uid, username: username, email: email})
+                    await setDoc(userDocRef, {uid: userCredential.user.uid, username: username, email: email, tts: false})
 
                     // ...
                     navigate("/home")

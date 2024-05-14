@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import './home.css';
-import { collection, getDoc, getDocs, doc, addDoc } from "@firebase/firestore"
+import { collection, getDoc, getDocs, doc, addDoc, setDoc } from "@firebase/firestore"
 import { db, auth } from '../firebase-config'
 import { getAuth } from 'firebase/auth'
 import { PollyClient, SynthesizeSpeechCommand, StartSpeechSynthesisTaskCommand, GetSpeechSynthesisTaskCommand, GetSpeechSynthesisTaskCommandOutput } from "@aws-sdk/client-polly";
@@ -24,6 +24,7 @@ function Home() {
     const [displayHome, setDisplayHome] = useState(true);
     const [displayCategories, setDisplayCategories] = useState(false);
     const [displayLevels, setDisplayLevels] = useState(false);
+    const [displaySettings, setDisplaySettings] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -34,62 +35,13 @@ function Home() {
 
     const url = 'https://the-trivia-api.com/v2';
 
-    const client = new PollyClient({
-        region: "eu-west-2",
-        credentials: {
-            accessKeyId: "AKIA5FTZB3MQFG25IT5H",
-            secretAccessKey: "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",
-        }
-    })
-
-    useEffect(() => {
-        // const text = async () => {
-
-        //     const input = {
-        //         // OutputFormat: "mp3",
-        //         // OutputS3BucketName: "ci601", // required
-        //         // Text: "I",
-        //         // TextType: "text",
-        //         // VoiceId: "Joanna"
-        //         TaskId: '536827bf-29c7-41ae-aaeb-1649edf8d0ff'
-        //     };
-        //     //const command = new StartSpeechSynthesisTaskCommand(input);
-
-        //     // await client.send(command)
-        //     //     .then((res) => {
-        //     //         console.log(res)
-        //     //         setTaskId(res.SynthesisTask.TaskId);
-
-        //     //         console.log(task)
-        //     //         if (res.$metadata.httpStatusCode !== 200) {
-        //     //             console.error("Error occurred:", res.$metadata.httpStatusCode);
-        //     //         }
-        //     //     })
-
-        //     const task = new GetSpeechSynthesisTaskCommand(input)
-        //     const gottenTask = await client.send(task);
-        //     console.log(gottenTask)
-
-        //     const audioElement = document.querySelector(".TTS");
-        //     audioElement.src = gottenTask.SynthesisTask.OutputUri;
-
-
-        // }
-        // text();
-    }, [])
-
-    const play = () => {
-        // const audioElement = document.querySelector(".TTS");
-        // console.log(audioElement)
-        // audioElement.play();
-    }
-
     // Handle user state changes
     async function onAuthStateChanged(user) {
         if (user) {
-            const userDocRefocRef = doc(db, 'users', user.uid)
-            const userSnap = await getDoc(userDocRefocRef);
+            const userDocRef = doc(db, 'users', user.uid)
+            const userSnap = await getDoc(userDocRef);
             setUser(userSnap.data());
+
             console.log(userSnap.data())
         }
 
@@ -101,8 +53,6 @@ function Home() {
 
         return subscriber; // unsubscribe on unmount
     }, []);
-
-
 
     useEffect(() => {
         const fetchCats = async () => {
@@ -122,6 +72,15 @@ function Home() {
         fetchCats();
     }, []);
 
+    const toggleSettings = () => {
+        if (displaySettings) {
+            setDisplayHome(true)
+            setDisplaySettings(false)
+        } else {
+            setDisplayHome(false);
+            setDisplaySettings(true);
+        }
+    }
 
     const toggleCats = () => {
         if (displayCategories) {
@@ -162,6 +121,21 @@ function Home() {
         window.location.reload()
     }
 
+    const save = async () => {
+        const checked = document.querySelector('input[name="tts"]:checked');
+
+        const newTTSVal = checked.value == 'on' ? true : false;
+        console.log(checked);
+        console.log(checked.value);
+        console.log(newTTSVal)
+        const userDocRef = doc(db, 'users', user.uid)
+        const updateDoc = await setDoc(userDocRef, { ...user, tts: newTTSVal })
+        setUser({ ...user, tts: newTTSVal })
+        toggleSettings()
+    }
+
+
+
     if (initializing) return null;
 
     return (
@@ -173,12 +147,11 @@ function Home() {
                         {user ?
                             <>
                                 <a className="welcomeMes">Welcome, {user.username}</a>
-                                <Link className="sideBtn" to={"/settings"}>Settings</Link>
+                                <a className="sideBtn" onClick={() => toggleSettings()}>Settings</a>
                                 <a className="sideBtn" onClick={() => signOut()}>Log Out</a>
                             </>
                             :
                             <>
-                                <Link className="sideBtn" to={"/settings"}>Settings</Link>
                                 <Link className="sideBtn" to={"/auth"}>Sign In</Link>
                             </>
                         }
@@ -188,7 +161,6 @@ function Home() {
 
                     <h1>CI601 Quiz</h1>
 
-                    <button onClick={() => play()}>play</button>
                     <button onClick={toggleCats}>Start a Quiz!</button>
 
                     <button className="btn" onClick={goToLeaderboard}>Leaderboard</button>
@@ -196,7 +168,7 @@ function Home() {
             }
             {displayCategories &&
                 <div className="page">
-                    <h1>Category</h1>
+                    <h1>Categories</h1>
 
                     <ul className="categories">
                         {
@@ -209,14 +181,42 @@ function Home() {
             }
             {displayLevels &&
                 <div className="page">
-                    <h1>Level</h1>
+                    <h1>Categories</h1>
                     <ul className="levels">
                         <li onClick={() => selectedLevel('easy')}>Easy</li>
                         <li onClick={() => selectedLevel('medium')}>Medium</li>
                         <li onClick={() => selectedLevel('hard')}>Hard</li>
-                        {/* <li onClick={() => selectedLevel('')}>Random</li> */}
                     </ul>
                     <button className="backBtn" onClick={() => toggleLevels('')}>Back</button>
+                </div>
+            }
+            {displaySettings &&
+                <div className="page">
+                    <h1>Settings</h1>
+                    <div className="settings">
+                        <h3>Text-to-Speech:</h3>
+                        {user.tts ?
+                            <>
+                                <label htmlFor="on">On
+                                    <input type="radio" id="on" name="tts" value="on" defaultChecked /></label>
+                                <label htmlFor="off">Off
+                                    <input type="radio" id="off" name="tts" value="off" /></label>
+                            </>
+                            :
+                            <>
+                                <label htmlFor="on">On
+                                    <input type="radio" id="on" name="tts" value="on" /></label>
+                                <label htmlFor="off">Off
+                                    <input type="radio" id="off" name="tts" value="off" defaultChecked /></label>
+                            </>
+                        }
+
+
+                    </div>
+
+
+                    <button className="backBtn" onClick={() => save()}>Save</button>
+                    <button className="backBtn" onClick={() => toggleSettings('')}>Back</button>
                 </div>
             }
         </div>
