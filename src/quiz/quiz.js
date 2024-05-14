@@ -27,8 +27,6 @@ function Quiz() {
     let useTTS = false;
     const [ttsUris, setTTSUris] = useState([]);
 
-    console.log(questionData);
-
     const client = new PollyClient({
         region: "eu-west-2",
         credentials: {
@@ -45,7 +43,7 @@ function Quiz() {
             const userDocRef = doc(db, 'users', user.uid)
             const userSnap = await getDoc(userDocRef);
             setUser(userSnap.data());
-            console.log(userSnap.data().tts);
+
             useTTS = userSnap.data().tts;
         }
     }
@@ -104,8 +102,6 @@ function Quiz() {
         setUser(auth.currentUser);
 
         const textToSpeech = async (qData) => {
-            console.log(user.tts)
-            console.log(useTTS)
             if (useTTS) {
                 let uris = [];
                 for (let i = 0; i < qData.length; i++) {
@@ -122,7 +118,7 @@ function Quiz() {
                         const command = new StartSpeechSynthesisTaskCommand(input);
                         await client.send(command)
                             .then((res) => {
-                                console.log(res)
+
                                 if (res.$metadata.httpStatusCode !== 200) {
                                     console.error("Error occurred:", res.$metadata.httpStatusCode);
                                 } else {
@@ -133,7 +129,7 @@ function Quiz() {
                 }
                 setTTSUris(uris);
             } else {
-                console.log('tts false')
+                console.log('tts is off')
             }
         }
         
@@ -231,21 +227,15 @@ function Quiz() {
             const secInt = parseInt(sec.textContent);
             const timeTaken = ((minInt * 60) + secInt);
 
-            console.log(`leaderboards/${loc.state.cat}/${loc.state.level}`)
             const colRef = collection(db, `leaderboards/${loc.state.cat}/${loc.state.level}`)
 
             const docRef = doc(db, `leaderboards/${loc.state.cat}/${loc.state.level}/${user.uid}`)
-            console.log(docRef)
+
             await getDoc(docRef).then(async (doc) => {
 
                 if (doc.data()) {
                     let preScore = doc.data().score;
                     let preTime = doc.data().time;
-
-                    console.log(preScore);
-                    console.log(score);
-                    console.log(preTime);
-                    console.log(timeTaken);
 
                     if (preScore < score || (preScore == score && timeTaken < preTime)) {
                         await setDoc(docRef, { username: user.username, uid: user.uid, score: score, time: timeTaken })

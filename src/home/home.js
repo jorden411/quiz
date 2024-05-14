@@ -41,8 +41,6 @@ function Home() {
             const userDocRef = doc(db, 'users', user.uid)
             const userSnap = await getDoc(userDocRef);
             setUser(userSnap.data());
-
-            console.log(userSnap.data())
         }
 
         if (initializing) setInitializing(false);
@@ -104,11 +102,9 @@ function Home() {
     };
 
     const selectedLevel = (lvl) => {
-        console.log(chosenCat)
         let cat = chosenCat.replaceAll(' ', '_')
         cat = cat.replaceAll('&', 'and');
         cat = cat.toLowerCase();
-        console.log(cat);
         navigate('/quiz', { state: { cat: cat, level: lvl } })
     }
 
@@ -125,9 +121,6 @@ function Home() {
         const checked = document.querySelector('input[name="tts"]:checked');
 
         const newTTSVal = checked.value == 'on' ? true : false;
-        console.log(checked);
-        console.log(checked.value);
-        console.log(newTTSVal)
         const userDocRef = doc(db, 'users', user.uid)
         const updateDoc = await setDoc(userDocRef, { ...user, tts: newTTSVal })
         setUser({ ...user, tts: newTTSVal })

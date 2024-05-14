@@ -13,7 +13,6 @@ function Leaderboard() {
     const fireUser = auth.currentUser
 
     const loc = useLocation()
-    console.log(loc)
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -37,7 +36,6 @@ function Leaderboard() {
             const userDocRefocRef = doc(db, 'users', user.uid)
             const userSnap = await getDoc(userDocRefocRef);
             setUser(userSnap.data());
-            console.log(userSnap.data().uid)
         }
     }
 
@@ -112,7 +110,6 @@ function Leaderboard() {
         let docs = [];
 
         querySnapshot.forEach((doc) => {
-            console.log(doc.id, '=>', doc.data())
             const timeInt = parseInt(doc.data().time)
             let mins = Math.floor(timeInt / 60).toString().length == 1 ? `0${Math.floor(timeInt / 60)}` : `${Math.floor(timeInt / 60)}`;
 
@@ -121,7 +118,6 @@ function Leaderboard() {
 
             rank++
         })
-        console.log('top ten docs', docs)
         setRetrievedTopTenDocs(docs)
 
         setIsLoading(false);
@@ -145,11 +141,7 @@ function Leaderboard() {
         let userDocFound = false;
 
         const querySnapshot = await getDocs(q).then((doc) => {
-            console.log(doc)
-            console.log(doc.docs)
             for (let i = 0; i < doc.docs.length; i++) {
-                console.log(doc.docs[i].id);
-                console.log(doc.docs[i].data());
                 // Format Time
                 const timeInt = parseInt(doc.docs[i].data().time)
                 let mins = Math.floor(timeInt / 60).toString().length == 1 ? `0${Math.floor(timeInt / 60)}` : `${Math.floor(timeInt / 60)}`;
@@ -181,23 +173,18 @@ function Leaderboard() {
                     userDocFound = false;
                 }
                 rank++
-                console.log(preDocs)
+
             }
 
             // Remove items from pre until sizes of pre + post == 9
-            console.log(preDocs.length)
-            console.log(postDocs.length)
             if ((postDocs.length + preDocs.length) > 9) {
                 if (postDocs.length > 0) {
                     let len = ((postDocs.length + preDocs.length) - 9);
                     for (let i = 0; i < len; i++) {
                         preDocs.shift();
-                        console.log('unshift')
-                        console.log(preDocs.length)
                     }
                 }
             }
-            console.log(preDocs.length);
             // Populate docs with preDocs
             let docNo = 0;
             if (preDocs.length > 0) {
@@ -206,13 +193,11 @@ function Leaderboard() {
                     docNo += 1;
                 }
             }
-
             // Populate displayDocs with the users doc after all the pre docs
             if (userDoc.length == 1) {
                 docs[docNo] = userDoc[0];
                 docNo += 1;
             }
-
 
             // Populate displayDocs with post docs after all pre docs and user doc
             if (postDocs.length > 0) {
@@ -221,7 +206,6 @@ function Leaderboard() {
                     docNo += 1;
                 }
             }
-            console.log('docs', docs)
             setRetrievedYourScoreDocs(docs);
         })
 

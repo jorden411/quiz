@@ -36,7 +36,6 @@ function Auth() {
     }
 
     const submitSignUp = async () => {
-        console.log(usernames);
         const errMes = document.querySelector('.signupErrorMes');
         const passwordCheck = /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[a-zA-Z!#$%&? "])[a-zA-Z0-9!#$%&?]{8,20}$/;
         const emailCheck = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -60,7 +59,6 @@ function Auth() {
                 .then(async (userCredential) => {
                     // Signed in
                     const user = userCredential.user;
-                    console.log(user);
 
                     // Add username to usernames array
                     const docRef = doc(db, 'usernames', 'usernames');
@@ -90,10 +88,7 @@ function Auth() {
             .then((userCredential) => {
                 // Signed in
                 const user = userCredential.user;
-
-
                 navigate("/home");
-                console.log(user);
             })
             .catch((error) => {
                 const errorCode = error.code;
